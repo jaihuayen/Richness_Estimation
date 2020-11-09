@@ -1,20 +1,10 @@
-S <- 200
-r <- 500
-thres <- 1.5
-model <- 'broken'
-set.seed(1111)
+library(ggplot2)
 
-if(model == 'unif'){
-  pi_i <- runif(S)
-}else if(model == 'zipf'){
-  pi_i <- 1/((1:S)-0.1)
-}else if(model == 'broken'){
-  pi_i <- rexp(S)
-}else if(model == 'homo'){
-  pi_i <- rep(1/S,S)
-}
-pi_norm <- pi_i/sum(pi_i)
-cv <- (sd(pi_norm) / mean(pi_norm))
+S <- 200
+r <- 1000
+thres <- 1.5
+model <- 'unif'
+set.seed(1111)
 
 simu_func_Chao <- function(n){
   s_chao <- 0
@@ -107,18 +97,41 @@ vsimu_func_proposed <- Vectorize(simu_func_proposed)
 vsimu_func_Chao_RMSE <- Vectorize(simu_func_Chao_RMSE)
 vsimu_func_proposed_RMSE <- Vectorize(simu_func_proposed_RMSE)
 
-plot(100:800, vsimu_func_Chao(100:800), col ="blue", type="l", ylim=c(100,250), 
-     main = paste("Comparison of Species Richness Estimator", model, "CV:", round(cv,3)), xlab = "n", ylab = "Estimate")
-lines(100:800, vsimu_func_proposed(100:800), type="l", col="red")
-abline(h=S)
 
-legend("bottomright", inset=.05, title="Estimator",
-       c("Chao1","Proposed"), fill=c("blue", "red"), horiz=TRUE)
+for(model in c("unif", "zipf", "broken", "homo")){
+  if(model == 'unif'){
+    pi_i <- runif(S)
+  }else if(model == 'zipf'){
+    pi_i <- 1/((1:S)-0.1)
+  }else if(model == 'broken'){
+    pi_i <- rexp(S)
+  }else if(model == 'homo'){
+    pi_i <- rep(1/S, S)
+  }
+  pi_norm <- pi_i/sum(pi_i)
+  cv <- (sd(pi_norm) / mean(pi_norm))
+  
+  richness <- ggplot(data.frame(x = c(100, 800)), aes(x)) +
+    stat_function(fun = vsimu_func_Chao, aes(colour = "Chao1"), size=1.5) +
+    stat_function(fun = vsimu_func_proposed, aes(colour = "Proposed"), size=1.5) +
+    ylim(100, 280) +
+    geom_hline(yintercept=S, color = "black") +
+    ggtitle(paste("Model:",model, "; CV:", round(cv,3), "; S:", S)) +
+    xlab("sample size") + 
+    ylab("Estimation")
+  print(richness)
+  ggsave(filename = paste(model, "_richness.png", sep = ""), richness, dpi = 300, device='png')
+  
+  rmse <- ggplot(data.frame(x = c(100, 800)), aes(x)) +
+    stat_function(fun = vsimu_func_Chao_RMSE, aes(colour = "Chao1"), size=1.5) +
+    stat_function(fun = vsimu_func_proposed_RMSE, aes(colour = "Proposed"), size=1.5) +
+    ylim(0, 100) +
+    geom_hline(yintercept=0, color = "black") +
+    ggtitle(paste("Model:", model, "; CV:", round(cv,3), "; S:", S)) +
+    xlab("sample size") + 
+    ylab("RMSE")
+  print(rmse)
+  ggsave(filename = paste(model, "_RMSE.png", sep = ""), rmse, dpi = 300, device='png')
+  #print(data.frame(Model = model, CV = cv, True = S))
+}
 
-plot(100:800, vsimu_func_Chao_RMSE(100:800), col ="blue", type="l", ylim=c(0,100), 
-     main = paste("Comparison of Species Richness Estimator", model, "CV:", round(cv,3)), xlab = "n", ylab = "RMSE")
-lines(100:800, vsimu_func_proposed_RMSE(100:800), type="l", col="red")
-abline(h=0)
-legend("topright", inset=.05, title="Estimator",
-       c("Chao1","Proposed"), fill=c("blue", "red"), horiz=TRUE)
-print(data.frame(Model = model, CV = cv, True = S))
