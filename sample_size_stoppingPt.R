@@ -1,7 +1,6 @@
-S <- 200
-t <- 500
+S <- 100
+t <- 100
 model <- 'broken'
-set.seed(1111)
 
 if(model == 'unif'){
   pi_i <- runif(S)
@@ -46,8 +45,8 @@ for(j in c(1:t)){
   
   nn[j] <- n
 }
-app1 <- data.frame(n = mean(nn), est = mean(chao),
-                   se = sd(chao), rmse = sqrt((S-mean(chao))^2+var(chao)))
+app1 <- data.frame(Method = "Proposed",n = mean(nn), est = mean(chao),
+                   se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
 
 
@@ -70,8 +69,8 @@ for(j in c(1:t)){
   }
   nn[j] <- n
 }
-app2 <- data.frame(n = mean(nn), est = mean(chao),
-                   se = sd(chao), rmse = sqrt((S-mean(chao))^2+var(chao)))
+app2 <- data.frame(Method = "f1=0",n = mean(nn), est = mean(chao),
+                   se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 nn <- chao <- numeric(0)
 for(j in c(1:t)){
   n <- 50
@@ -98,7 +97,7 @@ for(j in c(1:t)){
   }
   nn[j] <- n
 }
-app3 <- data.frame(n = mean(nn), est = mean(chao),
-                   se = sd(chao), rmse = sqrt((S-mean(chao))^2+var(chao)))
+app3 <- data.frame(Method = "f0<=1",n = mean(nn), est = mean(chao),
+                   se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
 rbind(app1,app2,app3)
