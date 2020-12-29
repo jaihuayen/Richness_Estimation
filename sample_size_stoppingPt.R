@@ -1,6 +1,6 @@
-S <- 200
+S <- 100
 t <- 100
-model <- 'homo'
+model <- 'broken'
 
 if(model == 'unif'){
   pi_i <- runif(S)
@@ -116,7 +116,7 @@ for(j in c(1:t)){
       f2 <- sum(x == 2)
     }
   }else{
-    while((sobs - (n-1)/n *(f1^2 / 2*f2)) <= 0){
+    while((sobs - (n-1)/n *(f1^2 / (2*f2))) <= 0){
       n <- n + 1
       x <- x + rmultinom(1, 1, pi_norm)
       sobs <- sum(x > 0)
@@ -124,7 +124,7 @@ for(j in c(1:t)){
       f2 <- sum(x == 2)
     }
   }
-
+  
   if(f2 == 0){
     chao[j] <- sum(x > 0) + (n-1)/(2*n) * f1 * (f1-1)
   }else{
