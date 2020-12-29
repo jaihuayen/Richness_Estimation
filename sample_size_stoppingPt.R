@@ -1,4 +1,4 @@
-S <- 100
+S <- 500
 t <- 100
 model <- 'broken'
 
@@ -100,4 +100,28 @@ for(j in c(1:t)){
 app3 <- data.frame(Method = "f0<=1",n = mean(nn), est = mean(chao),
                    se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
-rbind(app1,app2,app3)
+nn <- chao <- numeric(0)
+for(j in c(1:t)){
+  n <- 50
+  x <- rmultinom(1, n, pi_norm)
+  sobs <- sum(x > 0)
+  f1 <- sum(x == 1)
+  f2 <- sum(x == 2)
+  while((sobs - f1^2 - 2*f2) <= 0){
+    n <- n + 1
+    x <- x + rmultinom(1, 1, pi_norm)
+    sobs <- sum(x > 0)
+    f1 <- sum(x == 1)
+    f2 <- sum(x == 2)
+  }
+  if(f2 == 0){
+    chao[j] <- sum(x > 0) + (n-1)/(2*n) * f1 * (f1-1)
+  }else{
+    chao[j] <- sum(x > 0) + (n-1)/n * f1^2 / (2*f2)
+  }
+  nn[j] <- n
+}
+app4 <- data.frame(Method = "sobs - f1^2 - 2*f2",n = mean(nn), est = mean(chao),
+                   se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
+
+rbind(app1,app2,app3,app4)
