@@ -1,6 +1,6 @@
-S <- 500
+S <- 200
 t <- 100
-model <- 'broken'
+model <- 'homo'
 
 if(model == 'unif'){
   pi_i <- runif(S)
@@ -45,7 +45,7 @@ for(j in c(1:t)){
   
   nn[j] <- n
 }
-app1 <- data.frame(Method = "Proposed",n = mean(nn), est = mean(chao),
+app1 <- data.frame(Method = "Rarefaction",n = mean(nn), est = mean(chao),
                    se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
 
@@ -69,7 +69,7 @@ for(j in c(1:t)){
   }
   nn[j] <- n
 }
-app2 <- data.frame(Method = "f1=0",n = mean(nn), est = mean(chao),
+app2 <- data.frame(Method = "f0=0",n = mean(nn), est = mean(chao),
                    se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 nn <- chao <- numeric(0)
 for(j in c(1:t)){
@@ -97,7 +97,7 @@ for(j in c(1:t)){
   }
   nn[j] <- n
 }
-app3 <- data.frame(Method = "f0<=1",n = mean(nn), est = mean(chao),
+app3 <- data.frame(Method = "f0<1",n = mean(nn), est = mean(chao),
                    se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
 nn <- chao <- numeric(0)
@@ -107,13 +107,24 @@ for(j in c(1:t)){
   sobs <- sum(x > 0)
   f1 <- sum(x == 1)
   f2 <- sum(x == 2)
-  while((sobs - f1^2 - 2*f2) <= 0){
-    n <- n + 1
-    x <- x + rmultinom(1, 1, pi_norm)
-    sobs <- sum(x > 0)
-    f1 <- sum(x == 1)
-    f2 <- sum(x == 2)
+  if(f2 == 0){
+    while((sobs - (n-1)/n * (f1 * (f1-1) / 2)) <= 0){
+      n <- n + 1
+      x <- x + rmultinom(1, 1, pi_norm)
+      sobs <- sum(x > 0)
+      f1 <- sum(x == 1)
+      f2 <- sum(x == 2)
+    }
+  }else{
+    while((sobs - (n-1)/n *(f1^2 / 2*f2)) <= 0){
+      n <- n + 1
+      x <- x + rmultinom(1, 1, pi_norm)
+      sobs <- sum(x > 0)
+      f1 <- sum(x == 1)
+      f2 <- sum(x == 2)
+    }
   }
+
   if(f2 == 0){
     chao[j] <- sum(x > 0) + (n-1)/(2*n) * f1 * (f1-1)
   }else{
@@ -121,7 +132,7 @@ for(j in c(1:t)){
   }
   nn[j] <- n
 }
-app4 <- data.frame(Method = "sobs - f1^2 - 2*f2",n = mean(nn), est = mean(chao),
+app4 <- data.frame(Method = "sobs > f1^2 / 2*f2",n = mean(nn), est = mean(chao),
                    se_n = sd(nn), rmse = sqrt((S-mean(chao))^2+var(chao)))
 
 rbind(app1,app2,app3,app4)
