@@ -1,5 +1,6 @@
 S <- 200
 r <- 200
+sample_size_vec <- 50:800
 model <- 'zipf'
 set.seed(1111)
 
@@ -57,8 +58,6 @@ simu_func_jk_Chao <- function(n){
   return(mean(jk_chao))
 }
 vsimu_func_jk_Chao <- Vectorize(simu_func_jk_Chao)
-
-sample_size_vec <- 50:800
 
 plot(sample_size_vec,vsimu_func_Chao(c(sample_size_vec)), type = 'l', 
      col='black', ylim = c(S*0.5,S*1.5), lwd = 4,
